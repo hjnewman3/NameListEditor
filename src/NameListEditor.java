@@ -27,7 +27,7 @@ public class NameListEditor extends JFrame implements ActionListener
         this.textArea.setFont(new Font("Arial", Font.BOLD, 12)); // sets default font
         this.getContentPane().setLayout(new BorderLayout()); // BorderLayout makes the window fill automatically
         this.getContentPane().add(textArea);
-        this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/logo.jpg")));
+        this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/img/logo.jpg")));
 
         this.setMenuBar(this.menuBar); // adds the menu bar into the GUI
         this.menuBar.add(this.file);
