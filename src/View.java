@@ -1,15 +1,16 @@
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.MenuBar;
+
 
 public class View {
 
     private final Controller controller;
     private final BorderPane layout;
-    private final VBox topMenu;
-    private final MenuBar menuBar;
 
 
     public View(Model model, Controller controller) {
@@ -18,9 +19,14 @@ public class View {
 
         layout = new BorderPane();
 
-        topMenu = new VBox();
+        VBox menu = new VBox();
 
+        MenuBar menuBar = new MenuBar();
         menuBar = createMenuBar();
+
+        TabPane tabPane = new TabPane();
+        tabPane = createTabPane();
+
     }
 
     private MenuBar createMenuBar() {
@@ -61,5 +67,10 @@ public class View {
         menuBar.getMenus().addAll(fileMenu, toolsMenu, helpMenu);
 
         return menuBar;
+    }
+
+    private TabPane createTabPane() {
+
+
     }
 }
