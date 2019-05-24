@@ -58,9 +58,6 @@ public class NameListEditor extends Application {
         //Create the File Menu
         Menu fileMenu = new Menu("File");
         //Adds an open option to file menu
-        MenuItem openOption = new MenuItem("Open");
-        openOption.setOnAction(e -> openFile());
-        //Adds an add to file option to file menu
         MenuItem addToFile = new MenuItem("Add To Current List");
         addToFile.setOnAction(e -> addToFile());
         //Adds a save option to file menu
@@ -68,6 +65,9 @@ public class NameListEditor extends Application {
         saveOption.setOnAction(e -> saveFile());
         //Adds a close option to file menu
         MenuItem closeOption = new MenuItem("Close");
+        MenuItem openOption = new MenuItem("Open");
+        openOption.setOnAction(e -> openFile());
+        //Adds an add to file option to file menu
         closeOption.setOnAction(e -> stage.close());
         //Adds the File Menu's options
         fileMenu.getItems().addAll(openOption, addToFile, saveOption, closeOption);
