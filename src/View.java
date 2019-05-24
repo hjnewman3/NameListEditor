@@ -44,6 +44,14 @@ public class View {
         toolsMenu.getIems().addAll(resetOriginalList);
 
 
+        // Help Menu
+        Menu helpMenu = new Menu("Help");
+        MenuItem aboutOption = new MenuItem("About");
+        // TODO: add action
+
+        helpMenu.getItems().addAll(aboutOption);
+
+
 
     }
 }
