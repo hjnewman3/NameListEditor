@@ -35,5 +35,15 @@ public class View {
 
         fileMenu.getItems().addAll(openOption, addToFile, saveOption, closeOption);
 
+
+        // Tools Menu
+        Menu toolsMenu = new Menu("Tools");
+        MenuItem resetOriginalList = new MenuItem("Reset Original List");
+        // TODO: add action
+
+        toolsMenu.getIems().addAll(resetOriginalList);
+
+
+
     }
 }
