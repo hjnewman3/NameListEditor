@@ -8,6 +8,9 @@ public class View {
 
     private final Controller controller;
     private final BorderPane layout;
+    private final VBox topMenu;
+    private final MenuBar menuBar;
+
 
     public View(Model model, Controller controller) {
 
@@ -15,8 +18,12 @@ public class View {
 
         layout = new BorderPane();
 
-        VBox topMenu = new VBox();
+        topMenu = new VBox();
 
+        menuBar = createMenuBar();
+    }
+
+    private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
         // File Menu
@@ -41,7 +48,7 @@ public class View {
         MenuItem resetOriginalList = new MenuItem("Reset Original List");
         // TODO: add action
 
-        toolsMenu.getIems().addAll(resetOriginalList);
+        toolsMenu.getItems().addAll(resetOriginalList);
 
 
         // Help Menu
@@ -51,7 +58,8 @@ public class View {
 
         helpMenu.getItems().addAll(aboutOption);
 
+        menuBar.getMenus().addAll(fileMenu, toolsMenu, helpMenu);
 
-
+        return menuBar;
     }
 }
