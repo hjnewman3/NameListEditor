@@ -10,6 +10,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -18,6 +19,7 @@ import java.net.URL;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.text.WordUtils;
 
 public class NameListEditor extends Application {
 
@@ -30,15 +32,16 @@ public class NameListEditor extends Application {
     Stage stage;
     Scene scene;
     TextArea leftTextArea, rightTextArea, bottomBarDisplay;
-    String rightContents;
-
+    TextField badgerModeTextField;
+    String originalList, rightContents, line1, line2, line3, line4, line5, line6;
+    CheckBox capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6;
 
     public static void main(String[] args) { launch(args);}
 
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
-        stage.setTitle("Name List Editor 2.0");
+        stage.setTitle("Name List Editor 2.2");
 
         //Create the Top Menu
         VBox topMenu = new VBox();
@@ -46,19 +49,34 @@ public class NameListEditor extends Application {
         //Create the Menu Bar
         MenuBar menuBar = new MenuBar();
 
+        //Create toolbar separators
+        Separator verticalSeparatorTab1 = new Separator();
+        Separator verticalSeparatorTab2 = new Separator();
+        Separator verticalSeparatorTab3 = new Separator();
+        Separator verticalSeparatorTab4 = new Separator();
+
         //Create the File Menu
         Menu fileMenu = new Menu("File");
+        //Adds an open option to file menu
         MenuItem openOption = new MenuItem("Open");
-        //Sets the action to open a new file
         openOption.setOnAction(e -> openFile());
+        //Adds an add to file option to file menu
+        MenuItem addToFile = new MenuItem("Add To Current List");
+        addToFile.setOnAction(e -> addToFile());
+        //Adds a save option to file menu
         MenuItem saveOption = new MenuItem("Save");
-        //Sets the option to save a file
         saveOption.setOnAction(e -> saveFile());
+        //Adds a close option to file menu
         MenuItem closeOption = new MenuItem("Close");
-        //Sets the option to close the file
         closeOption.setOnAction(e -> stage.close());
         //Adds the File Menu's options
-        fileMenu.getItems().addAll(openOption, saveOption, closeOption);
+        fileMenu.getItems().addAll(openOption, addToFile, saveOption, closeOption);
+
+        //Create the Tools Menu
+        Menu toolsMenu = new Menu("Tools");
+        MenuItem resetOriginalList = new MenuItem("Reset Original List");
+        resetOriginalList.setOnAction(e -> resetOriginalList());
+        toolsMenu.getItems().addAll(resetOriginalList);
 
         //Create the Help Menu
         Menu helpMenu = new Menu("Help");
@@ -68,7 +86,7 @@ public class NameListEditor extends Application {
         helpMenu.getItems().addAll(aboutOption);
 
         //Adds the Menus to the Menu Bar
-        menuBar.getMenus().addAll(fileMenu, helpMenu);
+        menuBar.getMenus().addAll(fileMenu, toolsMenu, helpMenu);
 
         //Create the Tab Pane
         TabPane tabPane = new TabPane();
@@ -94,23 +112,60 @@ public class NameListEditor extends Application {
         //Creates Tab 2's Tool Bar
         ToolBar tab2ToolBar = new ToolBar();
         //Creates the Tabby Tab's Buttons & assigns their action
-        Button name1TitleButton = new Button("Name & 1 Title");
-        name1TitleButton.setOnAction(e -> name1Title());
-        Button name2TitlesButton = new Button("Name & 2 Titles");
-        name2TitlesButton.setOnAction(e -> name2Titles());
-        Button name3TitlesButton = new Button("Name & 3 Titles");
-        name3TitlesButton.setOnAction(e -> name3Titles());
-        Button name4TitlesButton = new Button("Name & 4 Titles");
-        name4TitlesButton.setOnAction(e -> name4Titles());
-        Button name5TitlesButton = new Button("Name & 5 Titles");
-        name5TitlesButton.setOnAction(e -> name5Titles());
-
+        Button twoLinerButton = new Button("2 Liner");
+        twoLinerButton.setOnAction(e -> twoLinerTab());
+        Button threeLinerButton = new Button("3 Liner");
+        threeLinerButton.setOnAction(e -> threeLinerTab());
+        Button fourLinerButton = new Button("4 Liner");
+        fourLinerButton.setOnAction(e -> fourLinerTab());
+        Button fiveLinerButton = new Button("5 Liner");
+        fiveLinerButton.setOnAction(e -> fiveLinerTab());
+        Button sixLinerButton = new Button("6 Liner");
+        sixLinerButton.setOnAction(e -> sixLinerTab());
+        Button blankTabTitleButton = new Button("Blank Tab Title");
+        blankTabTitleButton.setOnAction(e -> twoLinerFirstBlank());
         //Adds the buttons to the Tabby Tab Tool Bar
-        tab2ToolBar.getItems().addAll(name1TitleButton, name2TitlesButton, name3TitlesButton, name4TitlesButton, name5TitlesButton);
+        tab2ToolBar.getItems().addAll(twoLinerButton, threeLinerButton, fourLinerButton, fiveLinerButton, sixLinerButton, verticalSeparatorTab2, blankTabTitleButton);
         tab2.setContent(tab2ToolBar);
 
+        //Create Fix Case Tab
+        Tab tab3 = new Tab("Basket Case");
+        tab3.setClosable(false);
+        ToolBar tab3ToolBar = new ToolBar();
+        Button normalCase = new Button("All Normal Case");
+        normalCase.setOnAction(e -> fixCase("normal"));
+        Button lowerCase = new Button("All Lower Case");
+        lowerCase.setOnAction(e -> fixCase("lower"));
+        Button upperCase = new Button("All Upper Case");
+        upperCase.setOnAction(e -> fixCase("upper"));
+        Label whichBlankLineLabel = new Label("Or Pick -->:");
+        capsBox1 = new CheckBox("Line 1");
+        capsBox2 = new CheckBox("Line 2");
+        capsBox3 = new CheckBox("Line 3");
+        capsBox4 = new CheckBox("Line 4");
+        capsBox5 = new CheckBox("Line 5");
+        capsBox6 = new CheckBox("Line 6");
+        tab3ToolBar.getItems().addAll(normalCase, lowerCase, upperCase, verticalSeparatorTab3, whichBlankLineLabel, capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
+        tab3.setContent(tab3ToolBar);
+
+        //Create Badger Mode
+        Tab tab4 = new Tab("Badger Mode");
+        tab4.setClosable(false);
+        ToolBar tab4ToolBar = new ToolBar();
+        Button moveTextButton = new Button("Shift Text Left");
+        moveTextButton.setOnAction(e -> moveTextLeft());
+        badgerModeTextField = new TextField();
+        badgerModeTextField.setMaxWidth(45);
+        Button howManyTabsButton = new Button("<-- This Many Tabs");
+        howManyTabsButton.setOnAction(e -> nonInfiniteTabsBadgerMode());
+        Button infiniteTabs = new Button("Infinite Tabs");
+        infiniteTabs.setOnAction(e -> infiniteTabsBadgerMode());
+        Label howManyTabsLabel = new Label("Or Pick -->:");
+        tab4ToolBar.getItems().addAll(moveTextButton, verticalSeparatorTab4, infiniteTabs, howManyTabsLabel, badgerModeTextField, howManyTabsButton);
+        tab4.setContent(tab4ToolBar);
+
         //Adds the Tabs to the Tab Pane
-        tabPane.getTabs().addAll(tab1, tab2);
+        tabPane.getTabs().addAll(tab1, tab3, tab2, tab4);
 
         //Create a Label over each Text Area
         GridPane labelGrid = new GridPane();
@@ -150,18 +205,17 @@ public class NameListEditor extends Application {
         layout.setBottom(bottomBarDisplay);
 
         //Creates the main scene
-        scene = new Scene(layout, 800, 800);
+        scene = new Scene(layout, 1000, 800);
         stage.setScene(scene);
         scene.getStylesheets().setAll(getClass().getResource("FBPI.css").toExternalForm());
         stage.getIcons().add(icon);
         stage.show();
-
     }
 
     public void aboutWindow() {
         Pane aboutPane = new Pane();
         WebView browser = new WebView();
-        Scene aboutScene = new Scene(aboutPane, 500, 600);
+        Scene aboutScene = new Scene(aboutPane, 620, 600);
         Stage aboutStage = new Stage();
         aboutStage.setTitle("About Window HTML");
         aboutStage.setScene(aboutScene);
@@ -171,14 +225,36 @@ public class NameListEditor extends Application {
         aboutStage.show();
     }
 
-    public void openFile() {
+    public void resetOriginalList() {
         leftTextArea.setText("");
+        leftTextArea.setText(originalList);
+    }
+
+    public void openFile() {
+
         FileChooser fc = new FileChooser();
         fc.setTitle("Open File");
         File openFile = fc.showOpenDialog(stage);
         if (openFile != null) {
             try {
+                leftTextArea.setText("");
                 Scanner scan = new Scanner(new FileReader(openFile.getPath()));
+                while (scan.hasNext())
+                    leftTextArea.appendText(scan.nextLine() + "\r\n");
+            }
+            catch (IOException e) {
+                errorMessage();
+            }
+        }
+    }
+
+    public void addToFile() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Add To File");
+        File addToFile = fc.showOpenDialog(stage);
+        if (addToFile != null) {
+            try {
+                Scanner scan = new Scanner(new FileReader(addToFile.getPath()));
                 while (scan.hasNext())
                     leftTextArea.appendText(scan.nextLine() + "\r\n");
             }
@@ -218,7 +294,7 @@ public class NameListEditor extends Application {
 
     public void errorMessage() {
         bottomBarDisplay.setStyle("-fx-text-fill: RED;");
-        bottomBarDisplay.setText("Opps, there was a problem. Check the Original Name List for errors");
+        bottomBarDisplay.setText("Oops, there was a problem. Check the Original Name List for errors");
     }
 
     public void analyzeSpaces() {
@@ -239,23 +315,31 @@ public class NameListEditor extends Application {
     }
 
     public void removeSpaces() {
-        //Grabs the contents of the left side textAra
+        //Grabs the contents of the left side text area
         String contents = leftTextArea.getText();
-        //Splits those contents and adds them to a String Array
-        String[] contentsToEdit = contents.split("\\s+".trim());
+        originalList = leftTextArea.getText();
+        //Splits those contents and adds them to a String Array, return is the delimiter
+        String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         //Creates a StringBuilder to build the layout
         StringBuilder sb = new StringBuilder();
-        //Iterates through the Array to concatenate "FirstName LastName"
+        //iterates through the Array to concatenate the names the way I want them
         try {
-            for (int i = 0; i < contentsToEdit.length; i++) {
-                sb.append(contentsToEdit[i] + " ");
-                i++;
-                sb.append(contentsToEdit[i] + "\r\n");
+            for (int i = 0; i < contentsToSplit.length; i++) {
+                String line = contentsToSplit[i];
+                String[] contentsLine = line.split("\\s+".trim());
+                for (int a = 0; a < contentsLine.length; a++) {
+                    if (a > 0) {
+                        sb.append(" ");
+                    }
+                    sb.append(contentsLine[a]);
+                }
+                sb.append("\r\n");
             }
-            //Create a String variable with the value of each line formed by the StringBuilder
+            //Create a String Variable with the value of each line formed by the StringBuilder
             rightContents = sb.toString();
-            //Displays that new String out to the right side textArea
+            //Displays that new String out to the right side text area
             rightTextArea.setText(rightContents);
+            leftTextArea.setText(rightContents);
             actionComplete();
         }
         catch (Exception e) {
@@ -263,33 +347,18 @@ public class NameListEditor extends Application {
         }
     }
 
-    public void name1Title() {
+    public void twoLinerTab() {
         String contents = leftTextArea.getText();
         String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         StringBuilder sb = new StringBuilder();
         try {
             for (int i = 0; i < contentsToSplit.length; i+=2) {
-                String line1 = contentsToSplit[i];
-                String line2 = contentsToSplit[i + 1];
+                line1 = contentsToSplit[i];
+                line2 = contentsToSplit[i + 1];
 
-                String[] contentsLine1 = line1.split("\\s+".trim());
-                String[] contentsLine2 = line2.split("\\s+".trim());
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
 
-                for (int a = 0; a < contentsLine1.length; a++) {
-                    if (a > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine1[a]);
-                }
-                sb.append("\t");
-
-                for (int b = 0; b < contentsLine2.length; b++) {
-                    if (b > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine2[b]);
-                }
-                sb.append("\r\n");
+                sb.append(line1 + "\t" + line2 + "\r\n");
             }
             rightContents = sb.toString();
             rightTextArea.setText(rightContents);
@@ -298,103 +367,65 @@ public class NameListEditor extends Application {
         catch (Exception e) {
             errorMessage();
         }
-
     }
 
-    public void name2Titles() {
+    public void twoLinerFirstBlank() {
         String contents = leftTextArea.getText();
         String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         StringBuilder sb = new StringBuilder();
         try {
-            for (int i = 0; i < contentsToSplit.length; i += 3) {
-                String line1 = contentsToSplit[i];
-                String line2 = contentsToSplit[i + 1];
-                String line3 = contentsToSplit[i + 2];
+            for (int i = 0; i < contentsToSplit.length; i++) {
+                line1 = contentsToSplit[i];
 
-                String[] contentsLine1 = line1.split("\\s+".trim());
-                String[] contentsLine2 = line2.split("\\s+".trim());
-                String[] contentsLine3 = line3.split("\\s+".trim());
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
 
-                for (int a = 0; a < contentsLine1.length; a++) {
-                    if (a > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine1[a]);
-                }
-                sb.append("\t");
+                sb.append(" " + "\t" + line1 + "\r\n");
+            }
+            rightContents = sb.toString();
+            rightTextArea.setText(rightContents);
+        }
+        catch (Exception e) {
+            errorMessage();
+        }
+    }
 
-                for (int b = 0; b < contentsLine2.length; b++) {
-                    if (b > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine2[b]);
-                }
-                sb.append("\t");
+    public void threeLinerTab() {
+        String contents = leftTextArea.getText();
+        String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int i = 0; i < contentsToSplit.length; i+=3) {
+                line1 = contentsToSplit[i];
+                line2 = contentsToSplit[i+1];
+                line3 = contentsToSplit[i+2];
 
-                for (int c = 0; c < contentsLine3.length; c++) {
-                    if (c > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine3[c]);
-                }
-                sb.append("\r\n");
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
+
+                sb.append(line1 + "\t" + line2 + "\t" + line3 + "\r\n");
             }
             rightContents = sb.toString();
             rightTextArea.setText(rightContents);
             actionComplete();
         }
-        catch (Exception e){
+        catch (Exception e) {
             errorMessage();
         }
     }
 
-    public void name3Titles() {
+    public void fourLinerTab() {
         String contents = leftTextArea.getText();
         String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         StringBuilder sb = new StringBuilder();
         try {
             for (int i = 0; i < contentsToSplit.length; i+=4) {
-                String line1 = contentsToSplit[i];
-                String line2 = contentsToSplit[i + 1];
-                String line3 = contentsToSplit[i + 2];
-                String line4 = contentsToSplit[i + 3];
+                line1 = contentsToSplit[i];
+                line2 = contentsToSplit[i + 1];
+                line3 = contentsToSplit[i + 2];
+                line4 = contentsToSplit[i + 3];
 
-                String[] contentsLine1 = line1.split("\\s+".trim());
-                String[] contentsLine2 = line2.split("\\s+".trim());
-                String[] contentsLine3 = line3.split("\\s+".trim());
-                String[] contentsLine4 = line4.split("\\s+".trim());
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
 
-                for (int a = 0; a < contentsLine1.length; a++) {
-                    if (a > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine1[a]);
-                }
-                sb.append("\t");
-
-                for (int  b = 0; b < contentsLine2.length; b++) {
-                    if (b > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine2[b]);
-                }
-                sb.append("\t");
-
-                for (int c = 0; c < contentsLine3.length; c++) {
-                    if (c > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine3[c]);
-                }
-                sb.append("\t");
-
-                for (int d = 0; d < contentsLine4.length; d++) {
-                    if (d > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine4[d]);
-                }
-                sb.append("\r\n");
+                sb.append(line1 + "\t" + line2 + "\t" + line3 + "\t" + line4 + "\r\n");
             }
             rightContents = sb.toString();
             rightTextArea.setText(rightContents);
@@ -405,63 +436,21 @@ public class NameListEditor extends Application {
         }
     }
 
-    public void name4Titles() {
+    public void fiveLinerTab() {
         String contents = leftTextArea.getText();
         String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         StringBuilder sb = new StringBuilder();
         try {
             for (int i = 0; i < contentsToSplit.length; i += 5) {
-                String line1 = contentsToSplit[i];
-                String line2 = contentsToSplit[i + 1];
-                String line3 = contentsToSplit[i + 2];
-                String line4 = contentsToSplit[i + 3];
-                String line5 = contentsToSplit[i + 4];
+                line1 = contentsToSplit[i];
+                line2 = contentsToSplit[i + 1];
+                line3 = contentsToSplit[i + 2];
+                line4 = contentsToSplit[i + 3];
+                line5 = contentsToSplit[i + 4];
 
-                String[] contentsLine1 = line1.split("\\s+".trim());
-                String[] contentsLine2 = line2.split("\\s+".trim());
-                String[] contentsLine3 = line3.split("\\s+".trim());
-                String[] contentsLine4 = line4.split("\\s+".trim());
-                String[] contentsLine5 = line5.split("\\s+".trim());
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
 
-                for (int a = 0; a < contentsLine1.length; a++) {
-                    if (a > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine1[a]);
-                }
-                sb.append("\t");
-
-                for (int b = 0; b < contentsLine2.length; b++) {
-                    if (b > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine2[b]);
-                }
-                sb.append("\t");
-
-                for (int c = 0; c < contentsLine3.length; c++) {
-                    if (c > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine3[c]);
-                }
-                sb.append("\t");
-
-                for (int d = 0; d < contentsLine4.length; d++) {
-                    if (d > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine4[d]);
-                }
-                sb.append("\t");
-
-                for (int e = 0; e < contentsLine5.length; e++) {
-                    if (e > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine5[e]);
-                }
-                sb.append("\r\n");
+                sb.append(line1 + "\t" + line2 + "\t" + line3 + "\t" + line4 + "\t" + line5 + "\r\n");
             }
             rightContents = sb.toString();
             rightTextArea.setText(rightContents);
@@ -472,73 +461,22 @@ public class NameListEditor extends Application {
         }
     }
 
-    public void name5Titles() {
+    public void sixLinerTab() {
         String contents = leftTextArea.getText();
         String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
         StringBuilder sb = new StringBuilder();
         try {
             for (int i = 0; i < contentsToSplit.length; i+=6) {
-                String line1 = contentsToSplit[i];
-                String line2 = contentsToSplit[i + 1];
-                String line3 = contentsToSplit[i + 2];
-                String line4 = contentsToSplit[i + 3];
-                String line5 = contentsToSplit[i + 4];
-                String line6 = contentsToSplit[i + 5];
+                line1 = contentsToSplit[i];
+                line2 = contentsToSplit[i + 1];
+                line3 = contentsToSplit[i + 2];
+                line4 = contentsToSplit[i + 3];
+                line5 = contentsToSplit[i + 4];
+                line6 = contentsToSplit[i + 5];
 
-                String[] contentsLine1 = line1.split("\\s+".trim());
-                String[] contentsLine2 = line2.split("\\s+".trim());
-                String[] contentsLine3 = line3.split("\\s+".trim());
-                String[] contentsLine4 = line4.split("\\s+".trim());
-                String[] contentsLine5 = line5.split("\\s+".trim());
-                String[] contentsLine6 = line6.split("\\s+".trim());
+                capitalizeLines(capsBox1, capsBox2, capsBox3, capsBox4, capsBox5, capsBox6);
 
-                for (int a = 0; a < contentsLine1.length; a++) {
-                    if (a > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine1[a]);
-                }
-                sb.append("\t");
-
-                for (int b = 0; b < contentsLine2.length; b++) {
-                    if (b > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine2[b]);
-                }
-                sb.append("\t");
-
-                for (int c = 0; c < contentsLine3.length; c++) {
-                    if (c > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine3[c]);
-                }
-                sb.append("\t");
-
-                for (int d = 0; d < contentsLine4.length; d++) {
-                    if (d > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine4[d]);
-                }
-                sb.append("\t");
-
-                for (int e = 0; e < contentsLine5.length; e++) {
-                    if (e > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine5[e]);
-                }
-                sb.append("\t");
-
-                for (int f = 0; f < contentsLine6.length; f++) {
-                    if (f > 0) {
-                        sb.append(" ");
-                    }
-                    sb.append(contentsLine6[f]);
-                }
-                sb.append("\r\n");
+                sb.append(line1 + "\t" + line2 + "\t" + line3 + "\t" + line4 + "\t" + line5 + "\t" + line6 + "\r\n");
             }
             rightContents = sb.toString();
             rightTextArea.setText(rightContents);
@@ -547,7 +485,99 @@ public class NameListEditor extends Application {
         catch (Exception e) {
             errorMessage();
         }
+    }
 
+    public void fixCase(String fixCase) {
+        String contentsRight, contentsLeft;
+        if (fixCase == "lower") {
+            contentsLeft = leftTextArea.getText();
+            leftTextArea.setText(contentsLeft.toLowerCase());
+            contentsRight = rightTextArea.getText();
+            rightTextArea.setText(contentsRight.toLowerCase());
+        }
+        if (fixCase == "upper") {
+            contentsLeft = leftTextArea.getText();
+            leftTextArea.setText(contentsLeft.toUpperCase());
+            contentsRight = rightTextArea.getText();
+            rightTextArea.setText(contentsRight.toUpperCase());
+        }
+        if (fixCase == "normal") {
+            contentsLeft = leftTextArea.getText();
+            leftTextArea.setText(WordUtils.capitalizeFully(contentsLeft));
+            contentsRight = rightTextArea.getText();
+            rightTextArea.setText(WordUtils.capitalizeFully(contentsRight));
+        }
+        actionComplete();
+    }
+
+    public void capitalizeLines(CheckBox capsBox1, CheckBox capsBox2, CheckBox capsBox3, CheckBox capsBox4, CheckBox capsBox5, CheckBox capsBox6) {
+        if(capsBox1.isSelected())
+            line1 = line1.toUpperCase();
+        if(capsBox2.isSelected())
+            line2 = line2.toUpperCase();
+        if(capsBox3.isSelected())
+            line3 = line3.toUpperCase();
+        if(capsBox4.isSelected())
+            line4 = line4.toUpperCase();
+        if(capsBox5.isSelected())
+            line5 = line5.toUpperCase();
+        if(capsBox6.isSelected())
+            line6 = line6.toUpperCase();
+    }
+
+    public void moveTextLeft() {
+        String contents = rightTextArea.getText();
+        leftTextArea.setText(contents);
+
+    }
+
+    public void infiniteTabsBadgerMode() {
+        String contents = leftTextArea.getText();
+        String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int i = 0; i < contentsToSplit.length; i++) {
+                String line = contentsToSplit[i];
+                if (i > 0)  {
+                    sb.append("\t");
+                }
+                sb.append(line);
+            }
+            sb.append("\r\n");
+            rightContents = sb.toString();
+            rightTextArea.setText(rightContents);
+            actionComplete();
+        }
+        catch (Exception e) {
+            errorMessage();
+        }
+    }
+
+    public void nonInfiniteTabsBadgerMode() {
+        String tabCountBMText = badgerModeTextField.getText();
+        int tabCountBM = Integer.parseInt(tabCountBMText);
+        String contents = leftTextArea.getText();
+        String[] contentsToSplit = contents.split("\\s*\\r?\\n\\s*");
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int i = 0; i < contentsToSplit.length; i++) {
+                if (i > 0) {
+                    sb.append("\t");
+                }
+                if (i % tabCountBM == 0 && i != 0) {
+                    sb.append("\r\n");
+                }
+                sb.append(contentsToSplit[i]);
+            }
+            sb.append("\r\n");
+
+            rightContents = sb.toString();
+            rightTextArea.setText(rightContents);
+            actionComplete();
+        }
+        catch (Exception e) {
+            errorMessage();
+        }
     }
 }
 
